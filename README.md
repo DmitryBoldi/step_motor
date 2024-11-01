@@ -14,4 +14,9 @@
 - Прошивка МК:
     cmake --install build 
 
-Выход PWM - PA0
+- Steps
+
+        A0 - A
+        A1 - B
+        A2 - C 
+        A3 - D
