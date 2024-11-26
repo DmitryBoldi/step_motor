@@ -112,9 +112,6 @@ void timer_delay(uint32_t ms) {
     }
 
      // timer_disable_counter(TIM2); // Останавливаем таймер
-    
-
-
 }
 
 
