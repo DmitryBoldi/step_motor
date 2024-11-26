@@ -90,35 +90,64 @@ void step_motor_left(uint8_t step) {
     }
 }
 
-void delay(uint32_t delay) {
-    for (volatile uint32_t i = 0; i < delay; i++) {
-        asm("nop");
-    }
+
+
+void init_LED(void) {
+    rcc_periph_clock_enable(RCC_GPIOD);
+    gpio_mode_setup(GPIOD, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO15 | GPIO14 | GPIO13 | GPIO12);
+    gpio_clear(GPIOD, GPIO15);
 }
+
+void init_timer(void) {
+    rcc_periph_clock_enable(RCC_TIM2);
+    timer_set_prescaler(TIM2, 8399); // Предделитель (84 МГц / (8399 + 1) = 10 кГц)
+    timer_set_period(TIM2, 9999); // Период (10 кГц / (9999 + 1) = 1 Гц)
+    timer_enable_counter(TIM2); // Запускаем таймер
+}
+
+void timer_delay(uint32_t ms) {
+    for (uint32_t i = 0; i < ms; i++) {
+        timer_set_counter(TIM2, 0);
+        while (timer_get_counter(TIM2) < 1000); // Ждем 1000 тиков
+    }
+
+     // timer_disable_counter(TIM2); // Останавливаем таймер
+    
+
+
+}
+
 
 int main(void) {
     init_gpio();
+    init_LED();
+    init_timer();
 
     while (1) {
+        // Движение вправо 512
 
-for(volatile uint32_t i=0; i<512; i++){
+        for (volatile uint32_t i = 0; i < 512; i++) {
 
-        for (uint8_t step = 0; step < 8; step++) {
-            step_motor_right(step);
-            delay(1000); // Увеличьте или уменьшите задержку для регулировки скорости
+            for (uint8_t step = 0; step < 8; step++) {
+                step_motor_right(step);
+               
+                timer_delay(1000);
+                
+            }
+            gpio_toggle(GPIOD, GPIO15);
         }
 
-    }
+        // Движение влево 256
+        for (volatile uint32_t i = 0; i < 256; i++) {
+            for (uint8_t step = 0; step < 8; step++) {
+                step_motor_left(step);
+               
+                timer_delay(1000); // Задержка 500 мс
+            }
 
-
-for(volatile uint32_t i=0; i<256; i++){
-
-        for (uint8_t step = 0; step < 8; step++) {
-            step_motor_left(step);
-            delay(1000); // Увеличьте или уменьшите задержку для регулировки скорости
+              gpio_toggle(GPIOD, GPIO14);
         }
-
     }
-}
-    return 0;
+
+    return 0; // Этот код никогда не будет достигнут}
 }
